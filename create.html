@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Banana Factory - Create Account</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="banana banana1">🍌</div>
+  <div class="banana banana2">🍌</div>
+  <div class="banana banana3">🍌</div>
+
+  <div class="card auth-card">
+    <h1>🏭 New Worker</h1>
+    <p class="sub">Create your factory ID.</p>
+
+    <form id="createForm">
+      <input id="newUsername" type="text" placeholder="Username" required />
+
+      <div class="pw-wrap">
+        <input id="newPassword" type="password" placeholder="Password (min 6 chars)" required />
+        <button type="button" class="pw-eye" onclick="togglePassword('newPassword')">👁</button>
+      </div>
+
+      <div class="pw-wrap">
+        <input id="confirmPassword" type="password" placeholder="Confirm Password" required />
+        <button type="button" class="pw-eye" onclick="togglePassword('confirmPassword')">👁</button>
+      </div>
+
+      <label class="lbl">Date of Birth</label>
+      <input id="birthday" type="date" required />
+
+      <button type="submit" class="primary">Create Account</button>
+    </form>
+
+    <div class="links">
+      <a href="login.html">Back to login</a>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

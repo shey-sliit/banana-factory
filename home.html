@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Banana Factory - Home</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="background"></div>
+
+  <div class="banana banana1">🍌</div>
+  <div class="banana banana2">🍌</div>
+  <div class="banana banana3">🍌</div>
+
+  <div class="card home-card">
+    <div class="home-top">
+      <div>
+        <h1>Welcome, <span id="displayUser"></span> 👷</h1>
+        <p class="sub">Choose your shift difficulty.</p>
+      </div>
+      <button class="danger" onclick="logout()">Logout</button>
+    </div>
+
+    <div class="grid">
+      <div class="tile" onclick="startGame(1)">
+        <h2>Shift 1</h2>
+        <p>5 orders • no timer</p>
+      </div>
+      <div class="tile" onclick="startGame(2)">
+        <h2>Shift 2</h2>
+        <p>10 orders • faster pace</p>
+      </div>
+      <div class="tile" onclick="startGame(3)">
+        <h2>Shift 3</h2>
+        <p>15 orders • timer + streak</p>
+      </div>
+      <div class="tile gold" onclick="goLeaderboard()">
+        <h2>🏆 Leaderboard</h2>
+        <p>Top factory workers</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

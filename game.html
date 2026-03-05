@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Banana Factory - Quality Control</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="game-page">
+  <div class="background"></div>
+
+  <div class="card game-card">
+    <div class="game-header">
+      <div>
+        <h1>🏭 Quality Control</h1>
+        <p class="sub" id="statusText">Loading order…</p>
+      </div>
+      <a class="link" href="home.html">Exit</a>
+    </div>
+
+    <div class="stats-row">
+      <div class="pill">Level: <b id="levelDisplay"></b></div>
+      <div class="pill">Round: <b><span id="round">1</span></b></div>
+      <div class="pill">Score: <b><span id="score">0</span> 🍌</b></div>
+      <div class="pill">Lives: <b><span id="lives">3</span> ❤️</b></div>
+      <div class="pill" id="timerDisplay"></div>
+    </div>
+
+    <div class="bar">
+      <div id="roundBarFill" class="bar-fill"></div>
+    </div>
+
+    <div class="factory-stage">
+      <div class="ticket">
+        <div class="ticket-title">ORDER TICKET</div>
+        <div class="ticket-text">Pack <span id="packTarget">?</span> bananas</div>
+        <div class="ticket-small">Use the Banana API clue card below 👇</div>
+      </div>
+
+      <div class="clue">
+        <img id="bananaImage" alt="Banana API clue" />
+      </div>
+    </div>
+
+    <div class="choices">
+      <button class="choice" id="optA" onclick="chooseAnswer('A')">A</button>
+      <button class="choice" id="optB" onclick="chooseAnswer('B')">B</button>
+      <button class="choice" id="optC" onclick="chooseAnswer('C')">C</button>
+    </div>
+
+    <p class="hint">Correct pack = +1 🍌. Wrong pack = lose ❤️. Level 3 has a timer.</p>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>
