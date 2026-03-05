@@ -17,25 +17,18 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ========== UI: Dark Mode + Cursor ========== */
+/* ========= Dark mode toggle ========= */
 const darkToggle = document.getElementById("darkToggle");
 if (darkToggle) darkToggle.addEventListener("click", () => document.body.classList.toggle("dark"));
 
-const cursor = document.querySelector(".cursor");
-if (cursor) {
-  document.addEventListener("mousemove", (e) => {
-    cursor.style.left = e.clientX + "px";
-    cursor.style.top = e.clientY + "px";
-  });
-}
-
+/* ========= Password toggle ========= */
 window.togglePassword = function (id) {
   const input = document.getElementById(id);
   if (!input) return;
   input.type = input.type === "password" ? "text" : "password";
 };
 
-/* ========== AUTH: Create ========== */
+/* ========= Create account ========= */
 const createForm = document.getElementById("createForm");
 if (createForm) {
   createForm.addEventListener("submit", async (e) => {
@@ -68,7 +61,7 @@ if (createForm) {
   });
 }
 
-/* ========== AUTH: Login ========== */
+/* ========= Login ========= */
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
   loginForm.addEventListener("submit", async (e) => {
@@ -87,7 +80,7 @@ if (loginForm) {
   });
 }
 
-/* ========== AUTH: Protect Home ========== */
+/* ========= Protect home ========= */
 const displayUser = document.getElementById("displayUser");
 if (displayUser) {
   onAuthStateChanged(auth, (user) => {
@@ -96,7 +89,7 @@ if (displayUser) {
   });
 }
 
-/* ========== Logout + Navigation ========== */
+/* ========= Logout & navigation ========= */
 window.logout = async function () {
   await signOut(auth);
   window.location.href = "login.html";
@@ -114,7 +107,6 @@ window.goLeaderboard = function () {
 /* ============================================================
    BANANA FACTORY GAME
    MAIN API: Marc Conrad Banana API (puzzle + answer)
-   SECONDARY API: optional Pexels backgrounds
 ============================================================ */
 
 const bananaImage = document.getElementById("bananaImage");
@@ -134,7 +126,6 @@ const optC = document.getElementById("optC");
 let score = 0;
 let round = 1;
 let lives = 3;
-
 let correctAnswer = null;
 let options = {};
 let timer = null;
@@ -149,12 +140,7 @@ if (level === 1) { maxRounds = 5; useTimer = false; }
 if (level === 2) { maxRounds = 10; useTimer = false; }
 if (level === 3) { maxRounds = 15; useTimer = true; timerSeconds = 6; }
 
-// Optional background API
-const PEXELS_API_KEY = ""; // paste if you want backgrounds
-
-function setStatus(msg) {
-  if (statusText) statusText.textContent = msg;
-}
+function setStatus(msg) { if (statusText) statusText.textContent = msg; }
 
 function updateUI() {
   if (levelDisplay) levelDisplay.textContent = String(level);
@@ -180,13 +166,11 @@ function setOptionsUI() {
 function startTimer() {
   clearInterval(timer);
   timeLeft = timerSeconds;
-
   if (timerDisplay) timerDisplay.textContent = `⏱ ${timeLeft}s`;
 
   timer = setInterval(() => {
     timeLeft--;
     if (timerDisplay) timerDisplay.textContent = `⏱ ${timeLeft}s`;
-
     if (timeLeft <= 0) {
       clearInterval(timer);
       applyResult(false, "⏱ Order timed out!");
@@ -210,19 +194,12 @@ function generateOptions(correct) {
   }
 
   const arr = Array.from(pool).sort(() => Math.random() - 0.5);
-  const keys = ["A", "B", "C"];
-  const correctIdx = arr.indexOf(String(correct));
-
-  return {
-    options: { A: arr[0], B: arr[1], C: arr[2] },
-    correctKey: keys[correctIdx]
-  };
+  return { A: arr[0], B: arr[1], C: arr[2] };
 }
 
 async function fetchBananaPuzzle() {
   const res = await fetch("https://marcconrad.com/uob/banana/api.php", { cache: "no-store" });
   if (!res.ok) throw new Error("Banana API HTTP " + res.status);
-
   const data = await res.json();
 
   const imageUrl = data.question || data.image || data.img || null;
@@ -243,21 +220,16 @@ async function loadOrder() {
     correctAnswer = answer;
 
     if (packTarget) packTarget.textContent = correctAnswer;
-
     bananaImage.src = imageUrl || "https://upload.wikimedia.org/wikipedia/commons/8/8a/Banana-Single.jpg";
 
-    const gen = generateOptions(correctAnswer);
-    options = gen.options;
-
+    options = generateOptions(correctAnswer);
     setOptionsUI();
     updateUI();
 
     bananaImage.onload = () => (bananaImage.style.opacity = "1");
-
     setStatus("✅ Pack the correct banana count!");
 
     if (useTimer) startTimer();
-
   } catch (err) {
     console.error(err);
     setStatus("❌ Banana API failed. Check console.");
@@ -270,7 +242,6 @@ window.chooseAnswer = function (key) {
 
   const picked = options[key];
   const isCorrect = picked === correctAnswer;
-
   applyResult(isCorrect, isCorrect ? "✅ Correct pack!" : "❌ Wrong pack!");
 };
 
@@ -282,11 +253,7 @@ function applyResult(isCorrect, msg) {
   updateUI();
 
   setTimeout(() => {
-    if (lives <= 0) {
-      finishGame();
-      return;
-    }
-
+    if (lives <= 0) return finishGame();
     round++;
     if (round > maxRounds) finishGame();
     else loadOrder();
@@ -317,14 +284,13 @@ if (bananaImage) {
   loadOrder();
 }
 
-/* ========== Leaderboard ========== */
+/* ========= Leaderboard ========= */
 const leaderboardList = document.getElementById("leaderboardList");
 if (leaderboardList) {
   const q = query(collection(db, "leaderboard"), orderBy("score", "desc"));
 
   getDocs(q).then((snapshot) => {
     leaderboardList.innerHTML = "";
-
     snapshot.forEach((docSnap) => {
       const d = docSnap.data();
       const li = document.createElement("li");
