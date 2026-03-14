@@ -1,4 +1,4 @@
-/* style.css */
+
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif}
 body{
   min-height:100vh;
@@ -25,6 +25,7 @@ body{
 .banana1{top:10%;left:12%;animation-delay:0s}
 .banana2{top:75%;left:82%;animation-delay:2s}
 .banana3{top:42%;left:4%;animation-delay:4s}
+.banana4{top:60%;left:60%;animation-delay:6s}
 @keyframes float{
   0%,100%{transform:translateY(0)}
   50%{transform:translateY(-20px)}
