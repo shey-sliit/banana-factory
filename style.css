@@ -30,14 +30,32 @@ body{
   50%{transform:translateY(-20px)}
 }
 
-.card{
-  width:min(880px, 94vw);
-  background: rgba(255,255,255,0.14);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.18);
+.card {
+  width: min(880px, 94vw);
+
+  /* darker background so game is easier to read */
+  background: rgba(0, 0, 0, 0.55);
+
+  backdrop-filter: blur(14px);
+
+  border: 1px solid rgba(255,255,255,0.15);
+
+  border-radius: 22px;
+  box-shadow: 0 18px 55px rgba(0,0,0,0.45);
+  padding: 22px;
+
   border-radius: 22px;
   box-shadow: 0 18px 55px rgba(0,0,0,0.28);
   padding: 22px;
+}
+/* dark overlay so background images are not distracting */
+
+.background::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.45);
+    filter: blur(3px);
 }
 .auth-card{width:min(430px, 92vw)}
 .lb-card{width:min(720px, 92vw)}
@@ -121,11 +139,18 @@ input{
 .game-page{cursor:default}
 .game-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .stats-row{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}
-.pill{
-  background: rgba(0,0,0,0.12);
-  padding:10px 12px;
+.pill {
+  background: rgba(0,0,0,0.55);
+
+  border:1px solid rgba(255,204,0,0.4);
+
+  padding:10px 14px;
+
   border-radius:999px;
-  font-size:14px;
+
+  font-weight:600;
+
+  box-shadow:0 0 10px rgba(255,204,0,0.2);
 }
 .bar{
   height:10px;width:100%;
@@ -134,13 +159,31 @@ input{
   overflow:hidden;
   margin:10px 0 16px;
 }
-.bar-fill{
-  height:100%;width:0%;
-  background: rgba(255,204,0,0.95);
-  border-radius:999px;
-  transition: width .35s ease;
+.bar-fill {
+  height: 100%;
+  width: 0%;
+
+  background: linear-gradient(
+      90deg,
+      #ffcc00,
+      #ffd633,
+      #ffcc00
+  );
+
+  background-size: 200% 100%;
+
+  animation: progressGlow 2s linear infinite;
+
+  border-radius: 999px;
+
+  transition: width 0.4s ease;
 }
 
+@keyframes progressGlow{
+  0%{background-position:0%}
+  100%{background-position:200%}
+}
+ 
 .factory-stage{
   display:grid;
   grid-template-columns: 1fr 1fr;
@@ -151,19 +194,26 @@ input{
   .factory-stage{grid-template-columns:1fr}
 }
 .ticket{
-  background: rgba(0,0,0,0.14);
+  background: rgba(0,0,0,0.55);
   border-radius:18px;
   padding:16px;
 }
 .ticket-title{font-weight:900;letter-spacing:1px;opacity:.9}
 .ticket-text{font-size:22px;font-weight:900;margin:10px 0}
 .ticket-small{opacity:.85;font-size:13px}
-#bananaImage{
-  width:min(380px, 92%);
-  border-radius:18px;
-  box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-  background: rgba(255,255,255,0.08);
+#bananaImage {
+  width: min(380px, 92%);
+  border-radius: 18px;
+
+  /* glowing focus effect */
+  box-shadow:
+      0 0 15px rgba(255,204,0,0.6),
+      0 0 30px rgba(255,204,0,0.4),
+      0 14px 40px rgba(0,0,0,0.6);
+
+  background: rgba(0,0,0,0.2);
 }
+
 .clue{display:flex;justify-content:center}
 
 .choices{
@@ -183,21 +233,86 @@ input{
 .choice:hover{transform:translateY(-2px);opacity:.95}
 .hint{opacity:.85;font-size:13px;margin-top:12px}
 
-/* Leaderboard */
-.lb-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.lb-list{list-style:none;padding:0;margin:0}
-.lb-item{
-  display:grid;
-  grid-template-columns: 1fr auto auto;
-  gap:10px;
-  padding:12px 14px;
-  border-radius:16px;
-  background: rgba(0,0,0,0.12);
-  margin-bottom:10px;
+/* leaderboard layout */
+
+.lb-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:15px;
 }
-.lb-name{font-weight:900}
-.lb-meta{opacity:.85;font-size:13px}
-.lb-score{font-weight:900}
+
+.back-btn{
+color:white;
+text-decoration:none;
+font-weight:bold;
+background:rgba(0,0,0,0.4);
+padding:8px 12px;
+border-radius:8px;
+}
+
+.back-btn:hover{
+background:#ffcc00;
+color:black;
+}
+
+.leaderboard-container{
+margin-top:10px;
+}
+
+/* leaderboard rows */
+
+.lb-row{
+display:grid;
+grid-template-columns:1fr 2fr 1fr 1fr;
+padding:12px;
+margin-bottom:8px;
+border-radius:12px;
+background:rgba(0,0,0,0.4);
+}
+
+.lb-title{
+font-weight:bold;
+background:rgba(255,204,0,0.3);
+}
+
+/* list container */
+
+.lb-list{
+list-style:none;
+padding:0;
+margin:0;
+}
+
+/* leaderboard item */
+
+.lb-item{
+display:grid;
+grid-template-columns:1fr 2fr 1fr 1fr;
+padding:12px;
+margin-bottom:8px;
+border-radius:12px;
+background:rgba(0,0,0,0.5);
+transition:0.2s;
+}
+
+.lb-item:hover{
+transform:scale(1.02);
+background:rgba(255,204,0,0.3);
+}
+
+/* rank highlight */
+
+.lb-item:first-child{
+background:rgba(255,215,0,0.4);
+font-weight:bold;
+}
 
 /* Dark mode */
 body.dark .card{background: rgba(0,0,0,0.35)}
+
+/* smooth button press animation */
+
+.choice:active{
+    transform:scale(0.95);
+}

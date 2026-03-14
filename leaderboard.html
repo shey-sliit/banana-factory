@@ -1,21 +1,47 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Banana Factory - Leaderboard</title>
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Banana Factory - Leaderboard</title>
+<link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <div class="background"></div>
 
-  <div class="card lb-card">
-    <div class="lb-top">
-      <h1>🏆 Leaderboard</h1>
-      <a class="link" href="home.html">Back</a>
+<div class="background"></div>
+
+<!-- floating bananas -->
+<div class="banana banana1">🍌</div>
+<div class="banana banana2">🍌</div>
+<div class="banana banana3">🍌</div>
+
+<div class="card lb-card">
+
+    <div class="lb-header">
+        <h1>🏆 Factory Leaderboard</h1>
+        <a class="back-btn" href="home.html">⬅ Back</a>
     </div>
-    <ul id="leaderboardList" class="lb-list"></ul>
-  </div>
 
-  <script type="module" src="script.js"></script>
+    <div class="leaderboard-container">
+
+        <!-- leaderboard table header -->
+        <div class="lb-row lb-title">
+            <span>Rank</span>
+            <span>Player</span>
+            <span>Level</span>
+            <span>Score</span>
+        </div>
+
+        <!-- scores appear here -->
+        <ul id="leaderboardList" class="lb-list">
+            <li class="lb-item empty">No scores yet</li>
+        </ul>
+
+    </div>
+
+</div>
+
+<script type="module" src="script.js"></script>
+
 </body>
 </html>
