@@ -317,3 +317,52 @@ body.dark .card{background: rgba(0,0,0,0.35)}
 .choice:active{
     transform:scale(0.95);
 }
+
+.card{
+background: rgba(0,0,0,0.6);
+padding: 30px;
+border-radius: 20px;
+color: white;
+text-align: center;
+}
+
+.back-btn{
+color: white;
+text-decoration: none;
+}
+
+.card {
+    background: rgba(0,0,0,0.65);
+    backdrop-filter: blur(15px);
+    padding: 30px;
+    border-radius: 20px;
+    color: white;
+    width: 350px;
+    text-align: center;
+}
+
+.card label {
+    display: flex;
+    justify-content: space-between;
+    margin: 15px 0;
+    font-size: 16px;}
+
+    .profile-card {
+  max-width: 400px;
+  margin: 80px auto;
+  text-align: center;
+}
+
+.profile-info p {
+  font-size: 18px;
+  margin: 10px 0;
+}
+
+.profile-actions {
+  margin-top: 20px;
+}
+
+.logout-btn {
+  background: #ff4d4d;
+  color: white;
+}

@@ -1,5 +1,4 @@
-/* main script file for the Banana Factory game
-   handles authentication, game logic and leaderboard */
+/* Main script file - auth + game + leaderboard + settings */
 
 import { auth, db } from "./firebase.js";
 
@@ -17,35 +16,43 @@ import {
   query,
   orderBy,
   doc,
-  setDoc
+  setDoc,
+  getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* dark mode toggle */
+/* =========================
+   LOAD SETTINGS
+========================= */
+const savedDark = localStorage.getItem("darkMode") === "true";
+const savedSound = localStorage.getItem("sound") === "true";
+const savedTimer = localStorage.getItem("timer") !== "false";
 
+if (savedDark) document.body.classList.add("dark");
+
+/* =========================
+   DARK MODE TOGGLE
+========================= */
 const darkToggle = document.getElementById("darkToggle");
 
 if (darkToggle) {
   darkToggle.addEventListener("click", () => {
     document.body.classList.toggle("dark");
+    localStorage.setItem("darkMode", document.body.classList.contains("dark"));
   });
 }
 
-/* show / hide password */
-
+/* =========================
+   PASSWORD TOGGLE
+========================= */
 window.togglePassword = function (id) {
   const input = document.getElementById(id);
-
   if (!input) return;
-
-  if (input.type === "password") {
-    input.type = "text";
-  } else {
-    input.type = "password";
-  }
+  input.type = input.type === "password" ? "text" : "password";
 };
 
-/* create account */
-
+/* =========================
+   CREATE ACCOUNT
+========================= */
 const createForm = document.getElementById("createForm");
 
 if (createForm) {
@@ -54,48 +61,37 @@ if (createForm) {
 
     const username = document.getElementById("newUsername").value.trim();
     const password = document.getElementById("newPassword").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
+    const confirm = document.getElementById("confirmPassword").value;
     const birthday = document.getElementById("birthday").value;
 
-    if (!username) {
-      alert("Enter a username");
-      return;
-    }
-
-    if (password.length < 6) {
-      alert("Password must be at least 6 characters");
-      return;
-    }
-
-    if (password !== confirmPassword) {
-      alert("Passwords do not match");
-      return;
-    }
+    if (!username) return alert("Enter username");
+    if (password.length < 6) return alert("Password must be 6+ chars");
+    if (password !== confirm) return alert("Passwords do not match");
 
     try {
-      // firebase needs email format so username is converted
       const email = username + "@banana.com";
 
-      const userCredential =
-        await createUserWithEmailAndPassword(auth, email, password);
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
 
-      // save extra user data in firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        username: username,
-        birthday: birthday,
-        createdAt: new Date()
+      await setDoc(doc(db, "users", userCred.user.uid), {
+        username,
+        birthday,
+        gamesPlayed: 0,
+        bestScore: 0
       });
 
       alert("Account created!");
       window.location.href = "login.html";
-    } catch (error) {
-      alert(error.message);
+
+    } catch (err) {
+      alert(err.message);
     }
   });
 }
 
-/* login */
-
+/* =========================
+   LOGIN
+========================= */
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -106,348 +102,276 @@ if (loginForm) {
     const password = document.getElementById("password").value;
 
     try {
-      const email = username + "@banana.com";
-
-      await signInWithEmailAndPassword(auth, email, password);
-
+      await signInWithEmailAndPassword(auth, username + "@banana.com", password);
       window.location.href = "home.html";
     } catch {
-      alert("Invalid username or password");
+      alert("Invalid login");
     }
   });
 }
 
-/* protect home page */
-
+/* =========================
+   AUTH PROTECTION
+========================= */
 const displayUser = document.getElementById("displayUser");
 
 if (displayUser) {
   onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      window.location.href = "login.html";
-    } else {
-      displayUser.textContent = user.email.split("@")[0];
-    }
+    if (!user) window.location.href = "login.html";
+    else displayUser.textContent = user.email.split("@")[0];
   });
 }
 
-/* logout */
-
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async function () {
   await signOut(auth);
   window.location.href = "login.html";
 };
 
-/* page navigation */
-
-window.startGame = function (level) {
-  localStorage.setItem("bananaLevel", String(level));
+/* =========================
+   NAVIGATION
+========================= */
+window.startGame = (level) => {
+  localStorage.setItem("bananaLevel", level);
   window.location.href = "game.html";
 };
 
-window.goLeaderboard = function () {
+window.goLeaderboard = () => {
   window.location.href = "leaderboard.html";
 };
 
-/* game variables */
+/* =========================
+   GAME LOGIC
+========================= */
 
 const bananaImage = document.getElementById("bananaImage");
-const scoreDisplay = document.getElementById("score");
-const roundDisplay = document.getElementById("round");
-const levelDisplay = document.getElementById("levelDisplay");
-const timerDisplay = document.getElementById("timerDisplay");
-const statusText = document.getElementById("statusText");
-const roundBarFill = document.getElementById("roundBarFill");
-const packTarget = document.getElementById("packTarget");
-const livesEl = document.getElementById("lives");
-
-const optA = document.getElementById("optA");
-const optB = document.getElementById("optB");
-const optC = document.getElementById("optC");
-
-let score = 0;
-let round = 1;
-let lives = 3;
-let correctAnswer = "";
-let options = {};
-let timer = null;
-let timeLeft = 5;
-
-/* get selected level */
-
-const level = parseInt(localStorage.getItem("bananaLevel") || "1", 10);
-
-let maxRounds = 5;
-let useTimer = false;
-let timerSeconds = 0;
-
-if (level === 1) {
-  maxRounds = 5;
-  useTimer = false;
-}
-
-if (level === 2) {
-  maxRounds = 10;
-  useTimer = false;
-}
-
-if (level === 3) {
-  maxRounds = 15;
-  useTimer = true;
-  timerSeconds = 6;
-}
-
-if (levelDisplay) {
-  levelDisplay.textContent = level;
-}
-
-/* update text on screen */
-
-function updateUI() {
-  if (scoreDisplay) scoreDisplay.textContent = score;
-  if (roundDisplay) roundDisplay.textContent = round;
-  if (livesEl) livesEl.textContent = lives;
-  if (levelDisplay) levelDisplay.textContent = level;
-
-  if (roundBarFill) {
-    const percent = ((round - 1) / maxRounds) * 100;
-    roundBarFill.style.width = percent + "%";
-  }
-}
-
-/* show message */
-
-function setStatus(message) {
-  if (statusText) statusText.textContent = message;
-}
-
-/* create number options */
-
-function generateOptions(correct) {
-  const correctNum = Number(correct);
-  const values = new Set([String(correctNum)]);
-
-  while (values.size < 3) {
-    const randomOffset = Math.floor(Math.random() * 6) + 1;
-    const randomSign = Math.random() > 0.5 ? 1 : -1;
-    const newValue = correctNum + randomOffset * randomSign;
-
-    if (newValue >= 0) {
-      values.add(String(newValue));
-    }
-  }
-
-  const shuffled = Array.from(values).sort(() => Math.random() - 0.5);
-
-  return {
-    A: shuffled[0],
-    B: shuffled[1],
-    C: shuffled[2]
-  };
-}
-
-/* put options on buttons */
-
-function setOptionsUI() {
-  if (!optA || !optB || !optC) return;
-
-  optA.textContent = options.A;
-  optB.textContent = options.B;
-  optC.textContent = options.C;
-}
-
-/* load puzzle from banana api */
-
-async function loadBanana() {
-  if (!bananaImage) return;
-
-  setStatus("Loading order...");
-  bananaImage.style.opacity = "0.25";
-
-  try {
-    const response = await fetch("https://marcconrad.com/uob/banana/api.php", {
-      cache: "no-store"
-    });
-
-    const data = await response.json();
-
-    correctAnswer = String(data.solution ?? data.answer ?? data.correct ?? "");
-
-    bananaImage.src = data.question || data.image || data.img || "";
-
-    // keep it hidden so the player solves it
-    if (packTarget) packTarget.textContent = "?";
-
-    // make multiple choice numbers
-    options = generateOptions(correctAnswer);
-    setOptionsUI();
-
-    // random background from pexels
-    const pexelsResponse = await fetch(
-      "https://api.pexels.com/v1/search?query=fruit%20warehouse&per_page=20",
-      {
-        headers: {
-          Authorization: "9ta9BdqkRRhJpMjKudTYdnAUAmbSr3lLR6pbFFx1RNyjUibkSh0BSbYq"
-        }
-      }
-    );
-
-    const pexelsData = await pexelsResponse.json();
-
-    if (pexelsData.photos && pexelsData.photos.length > 0) {
-      const randomImage =
-        pexelsData.photos[Math.floor(Math.random() * pexelsData.photos.length)];
-
-      const bg = document.querySelector(".background");
-
-      if (bg) {
-        bg.style.backgroundImage =
-          `linear-gradient(-45deg, rgba(249,212,35,0.55), rgba(255,78,80,0.55), rgba(143,211,244,0.55), rgba(132,250,176,0.55)), url('${randomImage.src.large}')`;
-        bg.style.backgroundSize = "cover";
-        bg.style.backgroundPosition = "center";
-      }
-    }
-
-    bananaImage.onload = () => {
-      bananaImage.style.opacity = "1";
-    };
-
-    setStatus("Choose the correct number");
-    updateUI();
-
-    if (useTimer) {
-      startTimer();
-    }
-  } catch (error) {
-    console.error(error);
-    alert("Error loading banana question");
-  }
-}
-
-/* timer */
-
-function startTimer() {
-  clearInterval(timer);
-
-  timeLeft = timerSeconds;
-
-  if (timerDisplay) {
-    timerDisplay.textContent = "Time: " + timeLeft;
-  }
-
-  timer = setInterval(() => {
-    timeLeft--;
-
-    if (timerDisplay) {
-      timerDisplay.textContent = "Time: " + timeLeft;
-    }
-
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      applyResult(false, "Time ran out!");
-    }
-  }, 1000);
-}
-
-/* check selected option */
-
-window.chooseAnswer = function (key) {
-  if (useTimer) clearInterval(timer);
-
-  const pickedAnswer = options[key];
-  const isCorrect = pickedAnswer === correctAnswer;
-
-  applyResult(isCorrect, isCorrect ? "Correct!" : "Wrong!");
-};
-
-/* update result */
-
-function applyResult(isCorrect, message) {
-  if (isCorrect) {
-    score++;
-  } else {
-    lives--;
-  }
-
-  setStatus(message);
-  updateUI();
-
-  setTimeout(() => {
-    if (lives <= 0) {
-      finishGame();
-      return;
-    }
-
-    round++;
-
-    if (round > maxRounds) {
-      finishGame();
-    } else {
-      loadBanana();
-    }
-  }, 500);
-}
-
-/* end game */
-
-async function finishGame() {
-  clearInterval(timer);
-
-  const user = auth.currentUser;
-
-  if (user) {
-    await addDoc(collection(db, "leaderboard"), {
-      username: user.email.split("@")[0],
-      score: score,
-      level: level,
-      timestamp: new Date()
-    });
-  }
-
-  alert("Game Over! Score: " + score);
-  window.location.href = "leaderboard.html";
-}
-
-/* start game when page loads */
 
 if (bananaImage) {
-  updateUI();
+
+  const scoreDisplay = document.getElementById("score");
+  const roundDisplay = document.getElementById("round");
+  const levelDisplay = document.getElementById("levelDisplay");
+  const timerDisplay = document.getElementById("timerDisplay");
+
+  const optA = document.getElementById("optA");
+  const optB = document.getElementById("optB");
+  const optC = document.getElementById("optC");
+
+  /* SOUND FIX */
+  const correctSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3");
+  const wrongSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_8b7b7c6e6b.mp3");
+
+  let userInteracted = false;
+  document.body.addEventListener("click", () => {
+    userInteracted = true;
+  }, { once: true });
+
+  let score = 0;
+  let round = 1;
+  let lives = 3;
+  let correctAnswer = "";
+  let options = {};
+  let timer;
+
+  const level = parseInt(localStorage.getItem("bananaLevel") || "1");
+
+  let maxRounds = level === 1 ? 5 : level === 2 ? 10 : 15;
+  let useTimer = savedTimer;
+  let timerSeconds = 6;
+
+  if (levelDisplay) levelDisplay.textContent = level;
+
+  function updateUI() {
+    if (scoreDisplay) scoreDisplay.textContent = score;
+    if (roundDisplay) roundDisplay.textContent = round;
+  }
+
+  function generateOptions(correct) {
+    const correctNum = Number(correct);
+    const set = new Set([correctNum]);
+
+    while (set.size < 3) {
+      set.add(correctNum + Math.floor(Math.random() * 5) - 2);
+    }
+
+    const arr = Array.from(set).map(String).sort(() => Math.random() - 0.5);
+
+    return { A: arr[0], B: arr[1], C: arr[2] };
+  }
+
+  function setOptionsUI() {
+    optA.textContent = options.A;
+    optB.textContent = options.B;
+    optC.textContent = options.C;
+  }
+
+  async function loadBanana() {
+    const res = await fetch("https://marcconrad.com/uob/banana/api.php", { cache: "no-store" });
+    const data = await res.json();
+
+    correctAnswer = String(data.solution ?? data.answer);
+    bananaImage.src = data.question;
+
+    options = generateOptions(correctAnswer);
+    setOptionsUI();
+    updateUI();
+
+    if (useTimer) startTimer();
+  }
+
+  function startTimer() {
+    let time = timerSeconds;
+
+    if (timerDisplay) timerDisplay.textContent = "Time: " + time;
+
+    timer = setInterval(() => {
+      time--;
+      if (timerDisplay) timerDisplay.textContent = "Time: " + time;
+
+      if (time <= 0) {
+        clearInterval(timer);
+        next(false);
+      }
+    }, 1000);
+  }
+
+  window.chooseAnswer = (key) => {
+    clearInterval(timer);
+    next(options[key] === correctAnswer);
+  };
+
+  function next(correct) {
+    if (correct) {
+      score++;
+
+      if (savedSound && userInteracted) {
+        correctSound.currentTime = 0;
+        correctSound.play();
+      }
+
+    } else {
+      lives--;
+
+      if (savedSound && userInteracted) {
+        wrongSound.currentTime = 0;
+        wrongSound.play();
+      }
+    }
+
+    if (lives <= 0 || round >= maxRounds) return finish();
+
+    round++;
+    loadBanana();
+  }
+
+  async function finish() {
+    const user = auth.currentUser;
+
+    if (user) {
+      const userRef = doc(db, "users", user.uid);
+      const snap = await getDoc(userRef);
+
+      let gamesPlayed = 0;
+      let bestScore = 0;
+
+      if (snap.exists()) {
+        const data = snap.data();
+        gamesPlayed = data.gamesPlayed || 0;
+        bestScore = data.bestScore || 0;
+      }
+
+      gamesPlayed++;
+      if (score > bestScore) bestScore = score;
+
+      await setDoc(userRef, { gamesPlayed, bestScore }, { merge: true });
+
+      await addDoc(collection(db, "leaderboard"), {
+        username: user.email.split("@")[0],
+        score,
+        level,
+        timestamp: new Date()
+      });
+    }
+
+    alert("Game Over! Score: " + score);
+    window.location.href = "leaderboard.html";
+  }
+
   loadBanana();
 }
 
-/* show leaderboard */
-
+/* =========================
+   LEADERBOARD
+========================= */
 const leaderboardList = document.getElementById("leaderboardList");
 
 if (leaderboardList) {
   const q = query(collection(db, "leaderboard"), orderBy("score", "desc"));
 
-  getDocs(q).then((snapshot) => {
+  getDocs(q).then((snap) => {
     leaderboardList.innerHTML = "";
+    let rank = 1;
 
-    if (snapshot.empty) {
-      leaderboardList.innerHTML = "<li class='lb-item'>No scores yet.</li>";
-      return;
-    }
-
-    snapshot.forEach((docSnap) => {
-      const data = docSnap.data();
+    snap.forEach((docSnap) => {
+      const d = docSnap.data();
 
       const li = document.createElement("li");
-      li.className = "lb-item";
-
-      const rank = leaderboardList.children.length + 1;
-
       li.innerHTML = `
         <span>${rank}</span>
-        <span>${data.username}</span>
-        <span>${data.level}</span>
-        <span>${data.score} 🍌</span>
+        <span>${d.username}</span>
+        <span>${d.level}</span>
+        <span>${d.score} 🍌</span>
       `;
 
       leaderboardList.appendChild(li);
+      rank++;
     });
-  }).catch((error) => {
-    console.error("Leaderboard error:", error);
   });
 }
+
+/* =========================
+   PROFILE PAGE
+========================= */
+const profileName = document.getElementById("profileName");
+
+if (profileName) {
+  onAuthStateChanged(auth, async (user) => {
+
+    if (!user) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const username = user.email.split("@")[0];
+
+    document.getElementById("profileName").textContent = username;
+    document.getElementById("profileEmail").textContent = user.email;
+
+    const snap = await getDoc(doc(db, "users", user.uid));
+
+    if (snap.exists()) {
+      const data = snap.data();
+
+      document.getElementById("gamesPlayed").textContent = data.gamesPlayed || 0;
+      document.getElementById("bestScore").textContent = data.bestScore || 0;
+      document.getElementById("birthday").textContent = data.birthday || "Not set";
+    }
+  });
+}
+
+/* =========================
+   SETTINGS SAVE
+========================= */
+window.saveSettings = () => {
+  const dark = document.getElementById("darkModeToggle").checked;
+  const sound = document.getElementById("soundToggle").checked;
+  const timer = document.getElementById("timerToggle").checked;
+
+  localStorage.setItem("darkMode", dark);
+  localStorage.setItem("sound", sound);
+  localStorage.setItem("timer", timer);
+
+  alert("Settings saved!");
+};
