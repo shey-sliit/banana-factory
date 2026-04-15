@@ -161,6 +161,10 @@ window.goLeaderboard = () => {
   window.location.href = "leaderboard.html";
 };
 
+window.goProfile = () => {
+  window.location.href = "profile.html";
+};
+
 /* =========================
    GAME LOGIC
 ========================= */
