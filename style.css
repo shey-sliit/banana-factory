@@ -366,3 +366,28 @@ text-decoration: none;
   background: #ff4d4d;
   color: white;
 }
+
+/* message box (error + success) */
+.message-box {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: none;
+  text-align: center;
+}
+
+/* error style */
+.message-box.error {
+  background-color: rgba(255, 0, 0, 0.15);
+  color: #ff4d4d;
+  border: 1px solid #ff4d4d;
+}
+
+/* success style */
+.message-box.success {
+  background-color: rgba(0, 200, 0, 0.15);
+  color: #00cc66;
+  border: 1px solid #00cc66;
+}

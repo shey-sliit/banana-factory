@@ -351,3 +351,19 @@ window.saveSettings = () => {
 
   alert("Settings saved!");
 };
+
+/*error message*/
+function showMessage(text, type = "error") {
+  const box = document.getElementById("messageBox");
+
+  if (!box) return;
+
+  box.textContent = text;
+  box.className = "message-box " + type;
+  box.style.display = "block";
+
+  // auto hide after 3 seconds
+  setTimeout(() => {
+    box.style.display = "none";
+  }, 3000);
+}
