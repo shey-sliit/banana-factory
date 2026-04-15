@@ -20,18 +20,14 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* =========================
-   LOAD SETTINGS
-========================= */
+/*load settings */
 const savedDark = localStorage.getItem("darkMode") === "true";
 const savedSound = localStorage.getItem("sound") === "true";
 const savedTimer = localStorage.getItem("timer") !== "false";
 
 if (savedDark) document.body.classList.add("dark");
 
-/* =========================
-   DARK MODE TOGGLE
-========================= */
+/* dark mode toggle */
 const darkToggle = document.getElementById("darkToggle");
 
 if (darkToggle) {
@@ -41,18 +37,14 @@ if (darkToggle) {
   });
 }
 
-/* =========================
-   PASSWORD TOGGLE
-========================= */
+/* password toggle */
 window.togglePassword = function (id) {
   const input = document.getElementById(id);
   if (!input) return;
   input.type = input.type === "password" ? "text" : "password";
 };
 
-/* =========================
-   CREATE ACCOUNT
-========================= */
+/* create account */
 const createForm = document.getElementById("createForm");
 
 if (createForm) {
@@ -89,9 +81,7 @@ if (createForm) {
   });
 }
 
-/* =========================
-   LOGIN
-========================= */
+/* login */
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -110,9 +100,7 @@ if (loginForm) {
   });
 }
 
-/* =========================
-   AUTH PROTECTION
-========================= */
+/* auth protection */
 const displayUser = document.getElementById("displayUser");
 
 if (displayUser) {
@@ -122,17 +110,13 @@ if (displayUser) {
   });
 }
 
-/* =========================
-   LOGOUT
-========================= */
+/* logout */
 window.logout = async function () {
   await signOut(auth);
   window.location.href = "login.html";
 };
 
-/* =========================
-   NAVIGATION
-========================= */
+/* navigation */
 window.startGame = (level) => {
   localStorage.setItem("bananaLevel", level);
   window.location.href = "game.html";
@@ -142,9 +126,7 @@ window.goLeaderboard = () => {
   window.location.href = "leaderboard.html";
 };
 
-/* =========================
-   GAME LOGIC
-========================= */
+/*game logic */
 
 const bananaImage = document.getElementById("bananaImage");
 
@@ -302,9 +284,7 @@ if (bananaImage) {
   loadBanana();
 }
 
-/* =========================
-   LEADERBOARD
-========================= */
+/*leaderboard*/
 const leaderboardList = document.getElementById("leaderboardList");
 
 if (leaderboardList) {
@@ -331,9 +311,7 @@ if (leaderboardList) {
   });
 }
 
-/* =========================
-   PROFILE PAGE
-========================= */
+/*profile*/
 const profileName = document.getElementById("profileName");
 
 if (profileName) {
@@ -361,9 +339,7 @@ if (profileName) {
   });
 }
 
-/* =========================
-   SETTINGS SAVE
-========================= */
+/* settings save*/
 window.saveSettings = () => {
   const dark = document.getElementById("darkModeToggle").checked;
   const sound = document.getElementById("soundToggle").checked;
