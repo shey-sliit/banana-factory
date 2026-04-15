@@ -1,11 +1,14 @@
 
 *{margin:0;padding:0;box-sizing:border-box;font-family:"Poppins",sans-serif}
+
 body{
   min-height:100vh;
   display:flex;
   justify-content:center;
-  align-items:center;
-  overflow:hidden;
+  align-items:flex-start; /* ⬅️ FIX: start from top */
+  padding: 40px 0;        /* ⬅️ spacing */
+  overflow-y:auto;        /* ⬅️ allow scrolling */
+  overflow-x:hidden;
   color:#fff;
 }
 .background{

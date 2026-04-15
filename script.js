@@ -20,14 +20,34 @@ import {
   getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/*load settings */
+/* =========================
+   MESSAGE SYSTEM (NEW)
+========================= */
+function showMessage(text, type = "error") {
+  const box = document.getElementById("messageBox");
+  if (!box) return;
+
+  box.textContent = text;
+  box.className = "message-box " + type;
+  box.style.display = "block";
+
+  setTimeout(() => {
+    box.style.display = "none";
+  }, 3000);
+}
+
+/* =========================
+   LOAD SETTINGS
+========================= */
 const savedDark = localStorage.getItem("darkMode") === "true";
 const savedSound = localStorage.getItem("sound") === "true";
 const savedTimer = localStorage.getItem("timer") !== "false";
 
 if (savedDark) document.body.classList.add("dark");
 
-/* dark mode toggle */
+/* =========================
+   DARK MODE
+========================= */
 const darkToggle = document.getElementById("darkToggle");
 
 if (darkToggle) {
@@ -37,14 +57,18 @@ if (darkToggle) {
   });
 }
 
-/* password toggle */
+/* =========================
+   PASSWORD TOGGLE
+========================= */
 window.togglePassword = function (id) {
   const input = document.getElementById(id);
   if (!input) return;
   input.type = input.type === "password" ? "text" : "password";
 };
 
-/* create account */
+/* =========================
+   CREATE ACCOUNT
+========================= */
 const createForm = document.getElementById("createForm");
 
 if (createForm) {
@@ -56,9 +80,9 @@ if (createForm) {
     const confirm = document.getElementById("confirmPassword").value;
     const birthday = document.getElementById("birthday").value;
 
-    if (!username) return alert("Enter username");
-    if (password.length < 6) return alert("Password must be 6+ chars");
-    if (password !== confirm) return alert("Passwords do not match");
+    if (!username) return showMessage("Enter username");
+    if (password.length < 6) return showMessage("Password must be 6+ characters");
+    if (password !== confirm) return showMessage("Passwords do not match");
 
     try {
       const email = username + "@banana.com";
@@ -72,16 +96,21 @@ if (createForm) {
         bestScore: 0
       });
 
-      alert("Account created!");
-      window.location.href = "login.html";
+      showMessage("Account created successfully!", "success");
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1500);
 
     } catch (err) {
-      alert(err.message);
+      showMessage(err.message);
     }
   });
 }
 
-/* login */
+/* =========================
+   LOGIN
+========================= */
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -95,12 +124,14 @@ if (loginForm) {
       await signInWithEmailAndPassword(auth, username + "@banana.com", password);
       window.location.href = "home.html";
     } catch {
-      alert("Invalid login");
+      showMessage("Invalid username or password");
     }
   });
 }
 
-/* auth protection */
+/* =========================
+   AUTH PROTECTION
+========================= */
 const displayUser = document.getElementById("displayUser");
 
 if (displayUser) {
@@ -110,13 +141,17 @@ if (displayUser) {
   });
 }
 
-/* logout */
+/* =========================
+   LOGOUT
+========================= */
 window.logout = async function () {
   await signOut(auth);
   window.location.href = "login.html";
 };
 
-/* navigation */
+/* =========================
+   NAVIGATION
+========================= */
 window.startGame = (level) => {
   localStorage.setItem("bananaLevel", level);
   window.location.href = "game.html";
@@ -126,7 +161,9 @@ window.goLeaderboard = () => {
   window.location.href = "leaderboard.html";
 };
 
-/*game logic */
+/* =========================
+   GAME LOGIC
+========================= */
 
 const bananaImage = document.getElementById("bananaImage");
 
@@ -141,7 +178,6 @@ if (bananaImage) {
   const optB = document.getElementById("optB");
   const optC = document.getElementById("optC");
 
-  /* SOUND FIX */
   const correctSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3");
   const wrongSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_8b7b7c6e6b.mp3");
 
@@ -190,17 +226,22 @@ if (bananaImage) {
   }
 
   async function loadBanana() {
-    const res = await fetch("https://marcconrad.com/uob/banana/api.php", { cache: "no-store" });
-    const data = await res.json();
+    try {
+      const res = await fetch("https://marcconrad.com/uob/banana/api.php", { cache: "no-store" });
+      const data = await res.json();
 
-    correctAnswer = String(data.solution ?? data.answer);
-    bananaImage.src = data.question;
+      correctAnswer = String(data.solution ?? data.answer);
+      bananaImage.src = data.question;
 
-    options = generateOptions(correctAnswer);
-    setOptionsUI();
-    updateUI();
+      options = generateOptions(correctAnswer);
+      setOptionsUI();
+      updateUI();
 
-    if (useTimer) startTimer();
+      if (useTimer) startTimer();
+
+    } catch {
+      showMessage("Failed to load question");
+    }
   }
 
   function startTimer() {
@@ -227,15 +268,12 @@ if (bananaImage) {
   function next(correct) {
     if (correct) {
       score++;
-
       if (savedSound && userInteracted) {
         correctSound.currentTime = 0;
         correctSound.play();
       }
-
     } else {
       lives--;
-
       if (savedSound && userInteracted) {
         wrongSound.currentTime = 0;
         wrongSound.play();
@@ -277,14 +315,19 @@ if (bananaImage) {
       });
     }
 
-    alert("Game Over! Score: " + score);
-    window.location.href = "leaderboard.html";
+    showMessage("Game Over! Score: " + score, "success");
+
+    setTimeout(() => {
+      window.location.href = "leaderboard.html";
+    }, 1500);
   }
 
   loadBanana();
 }
 
-/*leaderboard*/
+/* =========================
+   LEADERBOARD
+========================= */
 const leaderboardList = document.getElementById("leaderboardList");
 
 if (leaderboardList) {
@@ -311,20 +354,19 @@ if (leaderboardList) {
   });
 }
 
-/*profile*/
+/* =========================
+   PROFILE
+========================= */
 const profileName = document.getElementById("profileName");
 
 if (profileName) {
   onAuthStateChanged(auth, async (user) => {
-
     if (!user) {
       window.location.href = "login.html";
       return;
     }
 
-    const username = user.email.split("@")[0];
-
-    document.getElementById("profileName").textContent = username;
+    document.getElementById("profileName").textContent = user.email.split("@")[0];
     document.getElementById("profileEmail").textContent = user.email;
 
     const snap = await getDoc(doc(db, "users", user.uid));
@@ -339,31 +381,3 @@ if (profileName) {
   });
 }
 
-/* settings save*/
-window.saveSettings = () => {
-  const dark = document.getElementById("darkModeToggle").checked;
-  const sound = document.getElementById("soundToggle").checked;
-  const timer = document.getElementById("timerToggle").checked;
-
-  localStorage.setItem("darkMode", dark);
-  localStorage.setItem("sound", sound);
-  localStorage.setItem("timer", timer);
-
-  alert("Settings saved!");
-};
-
-/*error message*/
-function showMessage(text, type = "error") {
-  const box = document.getElementById("messageBox");
-
-  if (!box) return;
-
-  box.textContent = text;
-  box.className = "message-box " + type;
-  box.style.display = "block";
-
-  // auto hide after 3 seconds
-  setTimeout(() => {
-    box.style.display = "none";
-  }, 3000);
-}
