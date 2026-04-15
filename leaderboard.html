@@ -1,4 +1,4 @@
-//leaderboard improvement
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +11,15 @@
 
 <div class="background"></div>
 
-<!-- floating bananas -->
-<div class="banana banana1">🍌</div>
-<div class="banana banana2">🍌</div>
-<div class="banana banana3">🍌</div>
+<!-- floating emojis -->
+<div class="floating-emoji" style="top: 10%; left: 12%;">🏆</div>
+<div class="floating-emoji slow" style="top: 75%; left: 82%;">🍌</div>
+<div class="floating-emoji fast" style="top: 42%; left: 4%;">🥇</div>
+<div class="floating-emoji drift-left" style="top: 60%; left: 60%;">⭐</div>
+<div class="floating-emoji drift-right" style="top: 20%; left: 88%;">👑</div>
+<div class="floating-emoji rotate" style="top: 85%; left: 25%;">🍌</div>
+<div class="floating-emoji" style="top: 35%; left: 92%;">✨</div>
+<div class="floating-emoji slow" style="top: 15%; left: 5%;">🎯</div>
 
 <div id="messageBox" class="message-box"></div>
 
@@ -31,13 +36,13 @@
         <div class="lb-row lb-title">
             <span>Rank</span>
             <span>Player</span>
-            <span>Level</span>
-            <span>Score</span>
+            <span>Best Level</span>
+            <span>Best Score</span>
         </div>
 
         <!-- scores appear here -->
         <ul id="leaderboardList" class="lb-list">
-            <li class="lb-item empty">No scores yet</li>
+            <li class="lb-item empty">📊 No scores yet - Be the first! 🍌</li>
         </ul>
 
     </div>

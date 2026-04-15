@@ -169,6 +169,8 @@ window.goProfile = () => {
    GAME LOGIC
 ========================= */
 
+/* GAME LOGIC */
+
 const bananaImage = document.getElementById("bananaImage");
 
 if (bananaImage) {
@@ -176,19 +178,12 @@ if (bananaImage) {
   const scoreDisplay = document.getElementById("score");
   const roundDisplay = document.getElementById("round");
   const levelDisplay = document.getElementById("levelDisplay");
+  const livesDisplay = document.getElementById("lives");
   const timerDisplay = document.getElementById("timerDisplay");
 
   const optA = document.getElementById("optA");
   const optB = document.getElementById("optB");
   const optC = document.getElementById("optC");
-
-  const correctSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_c8c8a73467.mp3");
-  const wrongSound = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_8b7b7c6e6b.mp3");
-
-  let userInteracted = false;
-  document.body.addEventListener("click", () => {
-    userInteracted = true;
-  }, { once: true });
 
   let score = 0;
   let round = 1;
@@ -199,23 +194,54 @@ if (bananaImage) {
 
   const level = parseInt(localStorage.getItem("bananaLevel") || "1");
 
-  let maxRounds = level === 1 ? 5 : level === 2 ? 10 : 15;
-  let useTimer = savedTimer;
-  let timerSeconds = 6;
+  const maxRounds = level === 1 ? 5 : level === 2 ? 10 : 15;
+  const useTimer = level === 3; // ONLY LEVEL 3
+  const timerSeconds = 6;
 
-  if (levelDisplay) levelDisplay.textContent = level;
+  levelDisplay.textContent = level;
+
+  // Pexels API Configuration
+  const PEXELS_API_KEY = "9ta9BdqkRRhJpMjKudTYdnAUAmbSr3lLR6pbFFx1RNyjUibkSh0BSbYq";
+  const PEXELS_API_URL = "https://api.pexels.com/v1/search";
+
+  // Fetch random banana image from Pexels
+  async function fetchBananaImage() {
+    try {
+      const randomPage = Math.floor(Math.random() * 10) + 1;
+      const url = `${PEXELS_API_URL}?query=banana&per_page=80&page=${randomPage}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          Authorization: PEXELS_API_KEY
+        }
+      });
+
+      if (!response.ok) throw new Error("Failed to fetch from Pexels");
+
+      const data = await response.json();
+      if (data.photos && data.photos.length > 0) {
+        const randomPhoto = data.photos[Math.floor(Math.random() * data.photos.length)];
+        return randomPhoto.src.large;
+      }
+      return null;
+    } catch (error) {
+      console.error("Pexels API error:", error);
+      return null;
+    }
+  }
 
   function updateUI() {
-    if (scoreDisplay) scoreDisplay.textContent = score;
-    if (roundDisplay) roundDisplay.textContent = round;
+    scoreDisplay.textContent = score;
+    roundDisplay.textContent = round;
+    livesDisplay.textContent = lives;
   }
 
   function generateOptions(correct) {
-    const correctNum = Number(correct);
-    const set = new Set([correctNum]);
+    const num = Number(correct);
+    const set = new Set([num]);
 
     while (set.size < 3) {
-      set.add(correctNum + Math.floor(Math.random() * 5) - 2);
+      set.add(num + Math.floor(Math.random() * 5) - 2);
     }
 
     const arr = Array.from(set).map(String).sort(() => Math.random() - 0.5);
@@ -231,11 +257,35 @@ if (bananaImage) {
 
   async function loadBanana() {
     try {
-      const res = await fetch("https://marcconrad.com/uob/banana/api.php", { cache: "no-store" });
+      // Fetch question from marconrad API
+      const res = await fetch("https://marcconrad.com/uob/banana/api.php");
       const data = await res.json();
 
       correctAnswer = String(data.solution ?? data.answer);
-      bananaImage.src = data.question;
+      
+      // Set marconrad API image as the clue - use the question image
+      if (data.question) {
+        bananaImage.src = data.question;
+        console.log("Loaded marconrad clue:", data.question);
+      }
+
+      // Fetch random Pexels banana image for background
+      const pexelsImage = await fetchBananaImage();
+      if (pexelsImage) {
+        // Create a temporary background container for better control
+        let bgContainer = document.querySelector(".game-bg-overlay");
+        if (!bgContainer) {
+          bgContainer = document.createElement("div");
+          bgContainer.className = "game-bg-overlay";
+          document.body.insertBefore(bgContainer, document.body.firstChild);
+        }
+        bgContainer.style.backgroundImage = `url('${pexelsImage}')`;
+        bgContainer.style.backgroundSize = "cover";
+        bgContainer.style.backgroundPosition = "center";
+        bgContainer.style.backgroundAttachment = "fixed";
+        bgContainer.style.backgroundRepeat = "no-repeat";
+        console.log("Loaded pexels background:", pexelsImage);
+      }
 
       options = generateOptions(correctAnswer);
       setOptionsUI();
@@ -243,19 +293,19 @@ if (bananaImage) {
 
       if (useTimer) startTimer();
 
-    } catch {
+    } catch (error) {
+      console.error("LoadBanana error:", error);
       showMessage("Failed to load question");
     }
   }
 
   function startTimer() {
     let time = timerSeconds;
-
-    if (timerDisplay) timerDisplay.textContent = "Time: " + time;
+    timerDisplay.textContent = "Time: " + time;
 
     timer = setInterval(() => {
       time--;
-      if (timerDisplay) timerDisplay.textContent = "Time: " + time;
+      timerDisplay.textContent = "Time: " + time;
 
       if (time <= 0) {
         clearInterval(timer);
@@ -270,19 +320,8 @@ if (bananaImage) {
   };
 
   function next(correct) {
-    if (correct) {
-      score++;
-      if (savedSound && userInteracted) {
-        correctSound.currentTime = 0;
-        correctSound.play();
-      }
-    } else {
-      lives--;
-      if (savedSound && userInteracted) {
-        wrongSound.currentTime = 0;
-        wrongSound.play();
-      }
-    }
+    if (correct) score++;
+    else lives--;
 
     if (lives <= 0 || round >= maxRounds) return finish();
 
@@ -294,28 +333,10 @@ if (bananaImage) {
     const user = auth.currentUser;
 
     if (user) {
-      const userRef = doc(db, "users", user.uid);
-      const snap = await getDoc(userRef);
-
-      let gamesPlayed = 0;
-      let bestScore = 0;
-
-      if (snap.exists()) {
-        const data = snap.data();
-        gamesPlayed = data.gamesPlayed || 0;
-        bestScore = data.bestScore || 0;
-      }
-
-      gamesPlayed++;
-      if (score > bestScore) bestScore = score;
-
-      await setDoc(userRef, { gamesPlayed, bestScore }, { merge: true });
-
       await addDoc(collection(db, "leaderboard"), {
         username: user.email.split("@")[0],
         score,
-        level,
-        timestamp: new Date()
+        level
       });
     }
 
@@ -345,6 +366,7 @@ if (leaderboardList) {
       const d = docSnap.data();
 
       const li = document.createElement("li");
+      li.className = `lb-item rank-${Math.min(rank, 3)}`;
       li.innerHTML = `
         <span>${rank}</span>
         <span>${d.username}</span>
